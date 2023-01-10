@@ -1,2 +1,1 @@
-# lcer
-Local Cluster Experience Replay
+# Local Cluster Experience Replay (LCER)
