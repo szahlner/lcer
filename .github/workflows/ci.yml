@@ -32,7 +32,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest black isort
         
+        apt-get install -y --no-install-recommends openmpi-bin openmpi-dev openmpi-common openmpi-doc libopenmpi-dev
+        
         # cpu version of pytorch
+        pip install mpi4py
         pip install numpy gym==0.18.0 scikit-learn fast_pytorch_kmeans
         pip install torch==1.11+cpu -f https://download.pytorch.org/whl/torch_stable.html
         
