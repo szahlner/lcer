@@ -32,7 +32,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest black isort
         
-        apt-get install -y --no-install-recommends openmpi-bin openmpi-dev openmpi-common openmpi-doc libopenmpi-dev
+        sudo apt install -y -q openmpi-bin libopenmpi-dev
         
         # cpu version of pytorch
         pip install mpi4py
