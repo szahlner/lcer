@@ -33,12 +33,12 @@ jobs:
         pip install flake8 pytest black isort
         
         # cpu version of pytorch
-        pip install numpy gym==0.18.0 scikit-learn fast_pytorch_kmeans mpi4py
+        pip install numpy gym==0.18.0 scikit-learn fast_pytorch_kmeans
         pip install torch==1.11+cpu -f https://download.pytorch.org/whl/torch_stable.html
         
         # download and install shadowhand-gym
-        git clone https://github.com/szahlner/shadowhand-gym.git
-        pip install -e shadowhand-gym
+        # git clone https://github.com/szahlner/shadowhand-gym.git
+        # pip install -e shadowhand-gym
         
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         
