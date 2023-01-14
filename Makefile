@@ -16,13 +16,13 @@ lint:
 
 format:
 	# Sort imports
-	isort ${LINT_PATHS}
+	isort --profile black ${LINT_PATHS}
 	# Reformat using black
 	black -l 127 ${LINT_PATHS}
 
 check-codestyle:
 	# Sort imports
-	isort --check ${LINT_PATHS}
+	isort --check --profile black ${LINT_PATHS}
 	# Reformat using black
 	black --check -l 127 ${LINT_PATHS}
 
