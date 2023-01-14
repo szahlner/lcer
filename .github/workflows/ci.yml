@@ -33,10 +33,10 @@ jobs:
         pip install flake8 pytest black isort numpy gym==0.18.0 scikit-learn fast_pytorch_kmeans
         
         # mujoco
-        mkdir /root/.mujoco
-        wget -q https://mujoco.org/download/mujoco210-linux-x86_64.tar.gz -O mujoco.tar.gz
-        tar -zxf mujoco.tar.gz -C "/root/.mujoco"
-        rm mujoco.tar.gz
+        sudo mkdir /root/.mujoco
+        sudo wget -q https://mujoco.org/download/mujoco210-linux-x86_64.tar.gz -O mujoco.tar.gz
+        sudo tar -zxf mujoco.tar.gz -C "/root/.mujoco"
+        sudo rm mujoco.tar.gz
         pip install mujoco-py<2.2,>=2.1
 
         # openmpi and mpi4py
