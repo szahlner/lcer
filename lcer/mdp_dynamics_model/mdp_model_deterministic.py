@@ -102,7 +102,12 @@ class EnsembleFC(nn.Module):
     weight: torch.Tensor
 
     def __init__(
-        self, in_features: int, out_features: int, ensemble_size: int, weight_decay: float = 0.0, bias: bool = True
+        self,
+        in_features: int,
+        out_features: int,
+        ensemble_size: int,
+        weight_decay: float = 0.0,
+        bias: bool = True,
     ) -> None:
         super(EnsembleFC, self).__init__()
         self.in_features = in_features
@@ -248,7 +253,13 @@ class EnsembleDynamicsModel:
         self.network_size = network_size
         self.elite_model_idxes = []
         self.ensemble_model = EnsembleModel(
-            state_size, action_size, reward_size, network_size, hidden_size, dropout_rate, use_decay=use_decay
+            state_size,
+            action_size,
+            reward_size,
+            network_size,
+            hidden_size,
+            dropout_rate,
+            use_decay=use_decay,
         )
         self.ensemble_model.train()
         self.scaler = StandardScaler()

@@ -101,7 +101,8 @@ class Normalizer:
         self.mean = self.total_sum / self.total_count
         self.std = np.sqrt(
             np.maximum(
-                np.square(self.eps), (self.total_sumsq / self.total_count) - np.square(self.total_sum / self.total_count)
+                np.square(self.eps),
+                (self.total_sumsq / self.total_count) - np.square(self.total_sum / self.total_count),
             )
         )
 
@@ -196,7 +197,13 @@ class HerReplayMemory:
     :param normalize: Whether to use normalization or not
     """
 
-    def __init__(self, env_params: dict, buffer_size: int, sample_func: Callable, normalize: bool = True) -> None:
+    def __init__(
+        self,
+        env_params: dict,
+        buffer_size: int,
+        sample_func: Callable,
+        normalize: bool = True,
+    ) -> None:
         self.env_params = env_params
         self.T = env_params["max_timesteps"]
         self.size = buffer_size // self.T
@@ -455,12 +462,20 @@ class HerMbpoReplayMemory(HerReplayMemory):
         v_env_params = copy.copy(self.env_params)
         v_env_params["max_timesteps"] = self.rollout_length
         self.v_buffer = HerReplayMemory(
-            v_env_params, v_capacity, sample_func=self.v_buffer.sample_func, normalize=self.v_buffer.normalize
+            v_env_params,
+            v_capacity,
+            sample_func=self.v_buffer.sample_func,
+            normalize=self.v_buffer.normalize,
         )
 
         for n in range(len(temp_buffers["obs"])):
             self.v_buffer.push_episode(
-                [temp_buffers["obs"][n], temp_buffers["ag"][n], temp_buffers["g"][n], temp_buffers["actions"][n]]
+                [
+                    temp_buffers["obs"][n],
+                    temp_buffers["ag"][n],
+                    temp_buffers["g"][n],
+                    temp_buffers["actions"][n],
+                ]
             )
 
     def push_v(self, episode_batch: list) -> None:
@@ -485,11 +500,17 @@ class HerMbpoReplayMemory(HerReplayMemory):
             if batch_size == 0:
                 v_obs, v_actions, v_rewards, v_obs_next, v_done = self.v_buffer.sample(v_batch_size)
                 if self.normalize:
-                    o, g = v_obs[:, : self.env_params["obs"]], v_obs[:, self.env_params["obs"] :]
+                    o, g = (
+                        v_obs[:, : self.env_params["obs"]],
+                        v_obs[:, self.env_params["obs"] :],
+                    )
                     o_norm, g_norm = self.o_norm.normalize(o), self.g_norm.normalize(g)
                     v_obs = np.concatenate((o_norm, g_norm), axis=-1)
 
-                    o_2, g_2 = v_obs_next[:, : self.env_params["obs"]], v_obs_next[:, self.env_params["obs"] :]
+                    o_2, g_2 = (
+                        v_obs_next[:, : self.env_params["obs"]],
+                        v_obs_next[:, self.env_params["obs"] :],
+                    )
                     o_2_norm, g_2_norm = self.o_norm.normalize(o_2), self.g_norm.normalize(g_2)
                     v_obs_next = np.concatenate((o_2_norm, g_2_norm), axis=-1)
                 return v_obs, v_actions, v_rewards, v_obs_next, v_done
@@ -500,11 +521,17 @@ class HerMbpoReplayMemory(HerReplayMemory):
 
             v_obs, v_actions, v_rewards, v_obs_next, v_done = self.v_buffer.sample(v_batch_size)
             if self.normalize:
-                o, g = v_obs[:, : self.env_params["obs"]], v_obs[:, self.env_params["obs"] :]
+                o, g = (
+                    v_obs[:, : self.env_params["obs"]],
+                    v_obs[:, self.env_params["obs"] :],
+                )
                 o_norm, g_norm = self.o_norm.normalize(o), self.g_norm.normalize(g)
                 v_obs = np.concatenate((o_norm, g_norm), axis=-1)
 
-                o_2, g_2 = v_obs_next[:, : self.env_params["obs"]], v_obs_next[:, self.env_params["obs"] :]
+                o_2, g_2 = (
+                    v_obs_next[:, : self.env_params["obs"]],
+                    v_obs_next[:, self.env_params["obs"] :],
+                )
                 o_2_norm, g_2_norm = self.o_norm.normalize(o_2), self.g_norm.normalize(g_2)
                 v_obs_next = np.concatenate((o_2_norm, g_2_norm), axis=-1)
             obs, actions, rewards, obs_next, done = super().sample(batch_size)
@@ -531,7 +558,13 @@ class SimpleReplayMemory:
     :param normalize: Whether to use normalization or not
     """
 
-    def __init__(self, env_params: dict, buffer_size: int, args: argparse.Namespace = None, normalize: bool = True) -> None:
+    def __init__(
+        self,
+        env_params: dict,
+        buffer_size: int,
+        args: argparse.Namespace = None,
+        normalize: bool = True,
+    ) -> None:
         assert args is not None, "args must not be None"
 
         self.env_params = env_params
@@ -603,7 +636,16 @@ class SimpleReplayMemory:
 
         # Add
         for n in range(len(mb_obs)):
-            self.push_transition([mb_obs[n], mb_obs_next[n], mb_ag[n], mb_ag_next[n], mb_g[n], mb_actions[n]])
+            self.push_transition(
+                [
+                    mb_obs[n],
+                    mb_obs_next[n],
+                    mb_ag[n],
+                    mb_ag_next[n],
+                    mb_g[n],
+                    mb_actions[n],
+                ]
+            )
 
     # Store the episode
     def push_transition(self, transition: list) -> None:
@@ -748,13 +790,31 @@ class NmerReplayMemory(SimpleReplayMemory):
         nn_indices = nn_indices[:, 0]
 
         # Actually sample
-        state, ag = self.buffers["obs"][sample_indices], self.buffers["ag"][sample_indices]
-        next_state, next_ag = self.buffers["obs_next"][sample_indices], self.buffers["ag_next"][sample_indices]
-        action, g = self.buffers["actions"][sample_indices], self.buffers["g"][sample_indices]
+        state, ag = (
+            self.buffers["obs"][sample_indices],
+            self.buffers["ag"][sample_indices],
+        )
+        next_state, next_ag = (
+            self.buffers["obs_next"][sample_indices],
+            self.buffers["ag_next"][sample_indices],
+        )
+        action, g = (
+            self.buffers["actions"][sample_indices],
+            self.buffers["g"][sample_indices],
+        )
 
-        nn_state, nn_ag = self.buffers["obs"][nn_indices], self.buffers["ag"][nn_indices]
-        nn_next_state, nn_next_ag = self.buffers["obs_next"][nn_indices], self.buffers["ag_next"][nn_indices]
-        nn_action, nn_g = self.buffers["actions"][nn_indices], self.buffers["g"][nn_indices]
+        nn_state, nn_ag = (
+            self.buffers["obs"][nn_indices],
+            self.buffers["ag"][nn_indices],
+        )
+        nn_next_state, nn_next_ag = (
+            self.buffers["obs_next"][nn_indices],
+            self.buffers["ag_next"][nn_indices],
+        )
+        nn_action, nn_g = (
+            self.buffers["actions"][nn_indices],
+            self.buffers["g"][nn_indices],
+        )
 
         delta_state = (next_state - state).copy()
         delta_ag = (next_ag - ag).copy()
@@ -853,13 +913,31 @@ class HerNmerReplayMemory(SimpleReplayMemory):
         nn_indices = nn_indices[:, 0]
 
         # Actually sample
-        state, ag = self.buffers["obs"][sample_indices], self.buffers["ag"][sample_indices]
-        next_state, next_ag = self.buffers["obs_next"][sample_indices], self.buffers["ag_next"][sample_indices]
-        action, g = self.buffers["actions"][sample_indices], self.buffers["g"][sample_indices]
+        state, ag = (
+            self.buffers["obs"][sample_indices],
+            self.buffers["ag"][sample_indices],
+        )
+        next_state, next_ag = (
+            self.buffers["obs_next"][sample_indices],
+            self.buffers["ag_next"][sample_indices],
+        )
+        action, g = (
+            self.buffers["actions"][sample_indices],
+            self.buffers["g"][sample_indices],
+        )
 
-        nn_state, nn_ag = self.buffers["obs"][nn_indices], self.buffers["ag"][nn_indices]
-        nn_next_state, nn_next_ag = self.buffers["obs_next"][nn_indices], self.buffers["ag_next"][nn_indices]
-        nn_action, nn_g = self.buffers["actions"][nn_indices], self.buffers["g"][nn_indices]
+        nn_state, nn_ag = (
+            self.buffers["obs"][nn_indices],
+            self.buffers["ag"][nn_indices],
+        )
+        nn_next_state, nn_next_ag = (
+            self.buffers["obs_next"][nn_indices],
+            self.buffers["ag_next"][nn_indices],
+        )
+        nn_action, nn_g = (
+            self.buffers["actions"][nn_indices],
+            self.buffers["g"][nn_indices],
+        )
 
         delta_state = (next_state - state).copy()
         delta_ag = (next_ag - ag).copy()
@@ -933,7 +1011,12 @@ class HerLocalClusterExperienceReplayClusterCenterReplayMemory(SimpleReplayMemor
     """
 
     def __init__(
-        self, env_params: dict, buffer_size: int, normalize: bool = False, args: argparse.Namespace = None, debug: bool = False
+        self,
+        env_params: dict,
+        buffer_size: int,
+        normalize: bool = False,
+        args: argparse.Namespace = None,
+        debug: bool = False,
     ) -> None:
         super().__init__(env_params, buffer_size, args=args, normalize=normalize)
 
@@ -944,7 +1027,10 @@ class HerLocalClusterExperienceReplayClusterCenterReplayMemory(SimpleReplayMemor
             self.n_clusters = self.T
         self.scaler = StandardScaler()
         self.kmeans = MiniBatchKMeans(
-            n_clusters=self.n_clusters, random_state=args.seed, batch_size=2048, reassignment_ratio=0
+            n_clusters=self.n_clusters,
+            random_state=args.seed,
+            batch_size=2048,
+            reassignment_ratio=0,
         )
         self.clusters = [StandardScaler() for _ in range(self.n_clusters)]
 
@@ -968,7 +1054,10 @@ class HerLocalClusterExperienceReplayClusterCenterReplayMemory(SimpleReplayMemor
 
         self.cluster_centers_kmeans.append(self.kmeans.cluster_centers_.copy())
         cc = np.empty(
-            shape=(self.n_clusters, 2 * self.env_params["obs"] + self.env_params["action"] + 3 * self.env_params["goal"])
+            shape=(
+                self.n_clusters,
+                2 * self.env_params["obs"] + self.env_params["action"] + 3 * self.env_params["goal"],
+            )
         )
         for n in range(self.n_clusters):
             cc[n] = self.clusters[n].mean_.copy()
@@ -1029,15 +1118,28 @@ class HerLocalClusterExperienceReplayClusterCenterReplayMemory(SimpleReplayMemor
         # Actually sample
         sample_indices = np.random.randint(len(self), size=batch_size)
 
-        state, ag = self.buffers["obs"][sample_indices], self.buffers["ag"][sample_indices]
-        next_state, next_ag = self.buffers["obs_next"][sample_indices], self.buffers["ag_next"][sample_indices]
-        action, g = self.buffers["actions"][sample_indices], self.buffers["g"][sample_indices]
+        state, ag = (
+            self.buffers["obs"][sample_indices],
+            self.buffers["ag"][sample_indices],
+        )
+        next_state, next_ag = (
+            self.buffers["obs_next"][sample_indices],
+            self.buffers["ag_next"][sample_indices],
+        )
+        action, g = (
+            self.buffers["actions"][sample_indices],
+            self.buffers["g"][sample_indices],
+        )
 
         z_space = np.concatenate((state, g, action), axis=-1)
         z_space_norm = self.scaler.transform(z_space)
         cluster_labels = self.kmeans.predict(z_space_norm)
 
-        obs_dim, action_dim, g_dim = self.env_params["obs"], self.env_params["action"], self.env_params["goal"]
+        obs_dim, action_dim, g_dim = (
+            self.env_params["obs"],
+            self.env_params["action"],
+            self.env_params["goal"],
+        )
 
         v_state = np.empty(shape=(batch_size, obs_dim))
         v_ag = np.empty(shape=(batch_size, g_dim))
@@ -1046,7 +1148,10 @@ class HerLocalClusterExperienceReplayClusterCenterReplayMemory(SimpleReplayMemor
         v_next_ag = np.empty(shape=(batch_size, g_dim))
         v_g = np.empty(shape=(batch_size, g_dim))
         for n in range(batch_size):
-            mu, std = self.clusters[cluster_labels[n]].mean_, self.clusters[cluster_labels[n]].scale_ * 0.01
+            mu, std = (
+                self.clusters[cluster_labels[n]].mean_,
+                self.clusters[cluster_labels[n]].scale_ * 0.01,
+            )
             v_state[n] = mu[:obs_dim] + np.random.normal(size=mu[:obs_dim].shape) * std[:obs_dim]
 
             g_dim_start, g_dim_end = obs_dim, obs_dim + g_dim
@@ -1054,19 +1159,28 @@ class HerLocalClusterExperienceReplayClusterCenterReplayMemory(SimpleReplayMemor
                 mu[g_dim_start:g_dim_end] + np.random.normal(size=mu[g_dim_start:g_dim_end].shape) * std[g_dim_start:g_dim_end]
             )
 
-            action_dim_start, action_dim_end = obs_dim + g_dim, obs_dim + g_dim + action_dim
+            action_dim_start, action_dim_end = (
+                obs_dim + g_dim,
+                obs_dim + g_dim + action_dim,
+            )
             v_action[n] = (
                 mu[action_dim_start:action_dim_end]
                 + np.random.normal(size=mu[action_dim_start:action_dim_end].shape) * std[action_dim_start:action_dim_end]
             )
 
-            ag_dim_start, ag_dim_end = obs_dim + g_dim + action_dim, obs_dim + 2 * g_dim + action_dim
+            ag_dim_start, ag_dim_end = (
+                obs_dim + g_dim + action_dim,
+                obs_dim + 2 * g_dim + action_dim,
+            )
             v_ag[n] = (
                 mu[ag_dim_start:ag_dim_end]
                 + np.random.normal(size=mu[ag_dim_start:ag_dim_end].shape) * std[ag_dim_start:ag_dim_end]
             )
 
-            obs_next_dim_start, obs_next_dim_end = obs_dim + 2 * g_dim + action_dim, 2 * obs_dim + 2 * g_dim + action_dim
+            obs_next_dim_start, obs_next_dim_end = (
+                obs_dim + 2 * g_dim + action_dim,
+                2 * obs_dim + 2 * g_dim + action_dim,
+            )
             v_next_state[n] = (
                 mu[obs_next_dim_start:obs_next_dim_end]
                 + np.random.normal(size=mu[obs_next_dim_start:obs_next_dim_end].shape)
@@ -1105,8 +1219,14 @@ class HerLocalClusterExperienceReplayClusterCenterReplayMemory(SimpleReplayMemor
         future_tmp = future_offset + current_episode_timestep
         future_t = current_episode * self.T + future_tmp
 
-        future_state, future_ag = self.buffers["obs"][future_t], self.buffers["ag"][future_t]
-        future_action, future_g = self.buffers["actions"][future_t], self.buffers["g"][future_t]
+        future_state, future_ag = (
+            self.buffers["obs"][future_t],
+            self.buffers["ag"][future_t],
+        )
+        future_action, future_g = (
+            self.buffers["actions"][future_t],
+            self.buffers["g"][future_t],
+        )
 
         future_z_space = np.concatenate((future_state, future_g, future_action), axis=-1)
         future_z_space_norm = self.scaler.transform(future_z_space)
@@ -1114,8 +1234,14 @@ class HerLocalClusterExperienceReplayClusterCenterReplayMemory(SimpleReplayMemor
 
         v_future_ag = np.empty(shape=(batch_size, g_dim))
         for n in range(batch_size):
-            mu, std = self.clusters[future_cluster_labels[n]].mean_, self.clusters[future_cluster_labels[n]].scale_ * 0.01
-            ag_dim_start, ag_dim_end = obs_dim + g_dim + action_dim, obs_dim + 2 * g_dim + action_dim
+            mu, std = (
+                self.clusters[future_cluster_labels[n]].mean_,
+                self.clusters[future_cluster_labels[n]].scale_ * 0.01,
+            )
+            ag_dim_start, ag_dim_end = (
+                obs_dim + g_dim + action_dim,
+                obs_dim + 2 * g_dim + action_dim,
+            )
             v_future_ag[n] = (
                 mu[ag_dim_start:ag_dim_end]
                 + np.random.normal(size=mu[ag_dim_start:ag_dim_end].shape) * std[ag_dim_start:ag_dim_end]
@@ -1152,7 +1278,12 @@ class HerLocalClusterExperienceReplayRandomMemberReplayMemory(SimpleReplayMemory
     """
 
     def __init__(
-        self, env_params: dict, buffer_size: int, normalize: bool = False, args: argparse.Namespace = None, debug: bool = False
+        self,
+        env_params: dict,
+        buffer_size: int,
+        normalize: bool = False,
+        args: argparse.Namespace = None,
+        debug: bool = False,
     ) -> None:
         super().__init__(env_params, buffer_size, args=args, normalize=normalize)
 
@@ -1165,7 +1296,10 @@ class HerLocalClusterExperienceReplayRandomMemberReplayMemory(SimpleReplayMemory
             self.n_clusters = self.T
         self.scaler = StandardScaler()
         self.kmeans = MiniBatchKMeans(
-            n_clusters=self.n_clusters, random_state=args.seed, batch_size=2048, reassignment_ratio=0
+            n_clusters=self.n_clusters,
+            random_state=args.seed,
+            batch_size=2048,
+            reassignment_ratio=0,
         )
         self.kmeans = KMeans(n_clusters=self.n_clusters, mode="euclidean", verbose=1)
         self.clusters = [[] for _ in range(self.n_clusters)]
@@ -1195,7 +1329,10 @@ class HerLocalClusterExperienceReplayRandomMemberReplayMemory(SimpleReplayMemory
 
         self.cluster_centers_kmeans.append(self.kmeans.cluster_centers_.copy())
         cc = np.empty(
-            shape=(self.n_clusters, 2 * self.env_params["obs"] + self.env_params["action"] + 3 * self.env_params["goal"])
+            shape=(
+                self.n_clusters,
+                2 * self.env_params["obs"] + self.env_params["action"] + 3 * self.env_params["goal"],
+            )
         )
         for n in range(self.n_clusters):
             cc[n] = self.clusters[n].mean_.copy()
@@ -1239,13 +1376,22 @@ class HerLocalClusterExperienceReplayRandomMemberReplayMemory(SimpleReplayMemory
         current_size = len(self)
         if current_size < batch_size:
             z_space = np.concatenate(
-                (self.buffers["obs"][:current_size], self.buffers["g"][:current_size], self.buffers["actions"][:current_size]),
+                (
+                    self.buffers["obs"][:current_size],
+                    self.buffers["g"][:current_size],
+                    self.buffers["actions"][:current_size],
+                ),
                 axis=-1,
             )
         else:
             indices = np.random.choice(np.arange(current_size), batch_size, replace=False)
             z_space = np.concatenate(
-                (self.buffers["obs"][indices], self.buffers["g"][indices], self.buffers["actions"][indices]), axis=-1
+                (
+                    self.buffers["obs"][indices],
+                    self.buffers["g"][indices],
+                    self.buffers["actions"][indices],
+                ),
+                axis=-1,
             )
 
         z_space_norm = self.scaler.transform(z_space)
@@ -1281,9 +1427,18 @@ class HerLocalClusterExperienceReplayRandomMemberReplayMemory(SimpleReplayMemory
         # Actually sample
         sample_indices = np.random.randint(len(self), size=batch_size)
 
-        state, ag = self.buffers["obs"][sample_indices], self.buffers["ag"][sample_indices]
-        next_state, next_ag = self.buffers["obs_next"][sample_indices], self.buffers["ag_next"][sample_indices]
-        action, g = self.buffers["actions"][sample_indices], self.buffers["g"][sample_indices]
+        state, ag = (
+            self.buffers["obs"][sample_indices],
+            self.buffers["ag"][sample_indices],
+        )
+        next_state, next_ag = (
+            self.buffers["obs_next"][sample_indices],
+            self.buffers["ag_next"][sample_indices],
+        )
+        action, g = (
+            self.buffers["actions"][sample_indices],
+            self.buffers["g"][sample_indices],
+        )
 
         z_space = np.concatenate((state, g, action), axis=-1)
         z_space_norm = self.scaler.transform(z_space)
@@ -1291,7 +1446,11 @@ class HerLocalClusterExperienceReplayRandomMemberReplayMemory(SimpleReplayMemory
         cluster_labels = self.kmeans.predict(z_space_norm)
         cluster_labels = cluster_labels.detach().cpu().numpy()
 
-        obs_dim, action_dim, g_dim = self.env_params["obs"], self.env_params["action"], self.env_params["goal"]
+        obs_dim, action_dim, g_dim = (
+            self.env_params["obs"],
+            self.env_params["action"],
+            self.env_params["goal"],
+        )
 
         v_state = np.empty(shape=(batch_size, obs_dim))
         v_ag = np.empty(shape=(batch_size, g_dim))
@@ -1304,10 +1463,22 @@ class HerLocalClusterExperienceReplayRandomMemberReplayMemory(SimpleReplayMemory
             if len(self.clusters[cluster_labels[n]]) > 0:
                 random_idx = np.random.choice(self.clusters[cluster_labels[n]], 2)
 
-                state[n], v_state[n] = self.buffers["obs"][random_idx[0]], self.buffers["obs"][random_idx[1]]
-                g[n], v_g[n] = self.buffers["g"][random_idx[0]], self.buffers["g"][random_idx[1]]
-                action[n], v_action[n] = self.buffers["actions"][random_idx[0]], self.buffers["actions"][random_idx[1]]
-                ag[n], v_ag[n] = self.buffers["ag"][random_idx[0]], self.buffers["ag"][random_idx[1]]
+                state[n], v_state[n] = (
+                    self.buffers["obs"][random_idx[0]],
+                    self.buffers["obs"][random_idx[1]],
+                )
+                g[n], v_g[n] = (
+                    self.buffers["g"][random_idx[0]],
+                    self.buffers["g"][random_idx[1]],
+                )
+                action[n], v_action[n] = (
+                    self.buffers["actions"][random_idx[0]],
+                    self.buffers["actions"][random_idx[1]],
+                )
+                ag[n], v_ag[n] = (
+                    self.buffers["ag"][random_idx[0]],
+                    self.buffers["ag"][random_idx[1]],
+                )
                 next_state[n] = self.buffers["obs_next"][random_idx[0]]
                 v_next_state[n] = self.buffers["obs_next"][random_idx[1]]
                 next_ag[n] = self.buffers["ag_next"][random_idx[0]]
@@ -1366,16 +1537,28 @@ class HerLocalClusterExperienceReplayRandomMemberReplayMemory(SimpleReplayMemory
         future_tmp_1 = future_offset_1 + current_episode_timestep_1
         future_t_1 = current_episode_1 * self.T + future_tmp_1
 
-        future_state_0, future_ag_0 = self.buffers["obs"][future_t_0], self.buffers["ag"][future_t_0]
-        future_action_0, future_g_0 = self.buffers["actions"][future_t_0], self.buffers["g"][future_t_0]
+        future_state_0, future_ag_0 = (
+            self.buffers["obs"][future_t_0],
+            self.buffers["ag"][future_t_0],
+        )
+        future_action_0, future_g_0 = (
+            self.buffers["actions"][future_t_0],
+            self.buffers["g"][future_t_0],
+        )
 
         future_z_space_0 = np.concatenate((future_state_0, future_g_0, future_action_0), axis=-1)
         future_z_space_norm_0 = self.scaler.transform(future_z_space_0)
         future_z_space_norm_0 = torch.tensor(future_z_space_norm_0, dtype=torch.float, device=self.device)
         future_cluster_labels_0 = self.kmeans.predict(future_z_space_norm_0)
 
-        future_state_1, future_ag_1 = self.buffers["obs"][future_t_1], self.buffers["ag"][future_t_1]
-        future_action_1, future_g_1 = self.buffers["actions"][future_t_1], self.buffers["g"][future_t_1]
+        future_state_1, future_ag_1 = (
+            self.buffers["obs"][future_t_1],
+            self.buffers["ag"][future_t_1],
+        )
+        future_action_1, future_g_1 = (
+            self.buffers["actions"][future_t_1],
+            self.buffers["g"][future_t_1],
+        )
 
         future_z_space_1 = np.concatenate((future_state_1, future_g_1, future_action_1), axis=-1)
         future_z_space_norm_1 = self.scaler.transform(future_z_space_1)
@@ -1388,9 +1571,15 @@ class HerLocalClusterExperienceReplayRandomMemberReplayMemory(SimpleReplayMemory
                 random_idx_0 = np.random.choice(self.clusters[future_cluster_labels_0[n]], 1)
                 random_idx_1 = np.random.choice(self.clusters[future_cluster_labels_1[n]], 1)
 
-                future_ag[n], v_future_ag[n] = self.buffers["ag_next"][random_idx_0], self.buffers["ag_next"][random_idx_1]
+                future_ag[n], v_future_ag[n] = (
+                    self.buffers["ag_next"][random_idx_0],
+                    self.buffers["ag_next"][random_idx_1],
+                )
             else:
-                future_ag[n], v_future_ag[n] = self.buffers["ag_next"][future_t_0], self.buffers["ag_next"][future_t_1]
+                future_ag[n], v_future_ag[n] = (
+                    self.buffers["ag_next"][future_t_0],
+                    self.buffers["ag_next"][future_t_1],
+                )
 
         her_ag = future_ag[use_her] * mixing_param[use_her] + v_future_ag[use_her] * (1 - mixing_param)[use_her]
 

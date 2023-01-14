@@ -73,7 +73,11 @@ def _check_goal_env_compute_reward(
     assert rewards[0] == reward, f"Vectorized computation of reward differs from single computation: {rewards[0]} != {reward}"
 
 
-def _check_obs(obs: Union[tuple, dict, np.ndarray, int], observation_space: spaces.Space, method_name: str) -> None:
+def _check_obs(
+    obs: Union[tuple, dict, np.ndarray, int],
+    observation_space: spaces.Space,
+    method_name: str,
+) -> None:
     """
     Check that the observation returned by the environment
     correspond to the declared one.

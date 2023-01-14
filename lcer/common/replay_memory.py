@@ -519,7 +519,14 @@ class BaseReplayMemory:
         self.action_dim = action_dim
         self.state_dim = state_dim
 
-    def push(self, state: np.ndarray, action: np.ndarray, reward: float, next_state: np.ndarray, done: float) -> None:
+    def push(
+        self,
+        state: np.ndarray,
+        action: np.ndarray,
+        reward: float,
+        next_state: np.ndarray,
+        done: float,
+    ) -> None:
         """
         Add a transition to the replay-buffer
 
@@ -643,7 +650,14 @@ class PerReplayMemory(BaseReplayMemory):
         self.sum_segment_tree = SumSegmentTree(tree_capacity)
         self.min_segment_tree = MinSegmentTree(tree_capacity)
 
-    def push(self, state: np.ndarray, action: np.ndarray, reward: float, next_state: np.ndarray, done: float) -> None:
+    def push(
+        self,
+        state: np.ndarray,
+        action: np.ndarray,
+        reward: float,
+        next_state: np.ndarray,
+        done: float,
+    ) -> None:
         """
         Add a transition to the replay-buffer
 
@@ -664,7 +678,7 @@ class PerReplayMemory(BaseReplayMemory):
 
     def sample(
         self, batch_size: int
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, List[int]]:
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, List[int],]:
         """
         Sample a batch of transitions from the replay-buffer
 
@@ -803,7 +817,7 @@ class PerNmerReplayMemory(PerReplayMemory):
 
     def sample(
         self, batch_size: int
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, List[int]]:
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, List[int],]:
         """
         Sample a batch of transitions from the replay-buffer and the virtual replay-buffer and apply mix-up sampling
         and local linear interpolation
@@ -939,7 +953,13 @@ class LocalClusterExperienceReplayClusterCenter(BaseReplayMemory):
         with open(save_path, "wb") as f:
             pickle.dump(data, f)
 
-    def update_clusters(self, states: np.ndarray, actions: np.ndarray, rewards: np.ndarray, next_states: np.ndarray) -> None:
+    def update_clusters(
+        self,
+        states: np.ndarray,
+        actions: np.ndarray,
+        rewards: np.ndarray,
+        next_states: np.ndarray,
+    ) -> None:
         """
         Update the cluster centers
 

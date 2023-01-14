@@ -8,7 +8,12 @@ import torch.nn.functional as F
 from gym import spaces
 from torch.optim import Adam
 
-from lcer.common.replay_memory import BaseReplayMemory, PerNmerReplayMemory, PerReplayMemory, ReplayMemory
+from lcer.common.replay_memory import (
+    BaseReplayMemory,
+    PerNmerReplayMemory,
+    PerReplayMemory,
+    ReplayMemory,
+)
 from lcer.common.utils import hard_update, soft_update
 from lcer.sac.sac_model import DeterministicPolicy, GaussianPolicy, QNetwork
 
@@ -96,7 +101,13 @@ class SAC:
         """
 
         # Sample a batch from memory
-        state_batch, action_batch, reward_batch, next_state_batch, mask_batch = memory.sample(batch_size=batch_size)
+        (
+            state_batch,
+            action_batch,
+            reward_batch,
+            next_state_batch,
+            mask_batch,
+        ) = memory.sample(batch_size=batch_size)
 
         state_batch = torch.FloatTensor(state_batch).to(self.device)
         next_state_batch = torch.FloatTensor(next_state_batch).to(self.device)
@@ -148,7 +159,13 @@ class SAC:
         if updates % self.target_update_interval == 0:
             soft_update(self.critic_target, self.critic, self.tau)
 
-        return qf1_loss.item(), qf2_loss.item(), policy_loss.item(), alpha_loss.item(), alpha_tlogs.item()
+        return (
+            qf1_loss.item(),
+            qf2_loss.item(),
+            policy_loss.item(),
+            alpha_loss.item(),
+            alpha_tlogs.item(),
+        )
 
     def update_parameters_per(
         self,
@@ -166,9 +183,15 @@ class SAC:
         """
 
         # Sample a batch from memory
-        state_batch, action_batch, reward_batch, next_state_batch, mask_batch, weights_batch, indices = memory.sample(
-            batch_size=batch_size
-        )
+        (
+            state_batch,
+            action_batch,
+            reward_batch,
+            next_state_batch,
+            mask_batch,
+            weights_batch,
+            indices,
+        ) = memory.sample(batch_size=batch_size)
 
         state_batch = torch.FloatTensor(state_batch).to(self.device)
         next_state_batch = torch.FloatTensor(next_state_batch).to(self.device)
@@ -231,7 +254,13 @@ class SAC:
         new_priorities = new_priorities.data.cpu().numpy().squeeze()
         memory.update_priorities(indices, new_priorities)
 
-        return qf1_loss.item(), qf2_loss.item(), policy_loss.item(), alpha_loss.item(), alpha_tlogs.item()
+        return (
+            qf1_loss.item(),
+            qf2_loss.item(),
+            policy_loss.item(),
+            alpha_loss.item(),
+            alpha_tlogs.item(),
+        )
 
     def save_checkpoint(self, env_name: str, ckpt_path: str, suffix: str = None) -> None:
         """

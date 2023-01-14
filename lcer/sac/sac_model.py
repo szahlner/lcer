@@ -94,7 +94,13 @@ class GaussianPolicy(nn.Module):
     :param action_space: Action space of the environment
     """
 
-    def __init__(self, num_inputs: int, num_actions: int, hidden_dim: int, action_space: spaces.Space = None) -> None:
+    def __init__(
+        self,
+        num_inputs: int,
+        num_actions: int,
+        hidden_dim: int,
+        action_space: spaces.Space = None,
+    ) -> None:
         super(GaussianPolicy, self).__init__()
 
         self.linear1 = nn.Linear(num_inputs, hidden_dim)
@@ -158,7 +164,13 @@ class DeterministicPolicy(nn.Module):
     :param action_space: Action space of the environment
     """
 
-    def __init__(self, num_inputs: int, num_actions: int, hidden_dim: int, action_space: spaces.Space = None) -> None:
+    def __init__(
+        self,
+        num_inputs: int,
+        num_actions: int,
+        hidden_dim: int,
+        action_space: spaces.Space = None,
+    ) -> None:
         super(DeterministicPolicy, self).__init__()
         self.linear1 = nn.Linear(num_inputs, hidden_dim)
         self.linear2 = nn.Linear(hidden_dim, hidden_dim)

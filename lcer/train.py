@@ -22,7 +22,12 @@ def train_sac(parser: argparse.ArgumentParser) -> None:
     # Common arguments
     parser.add_argument("--lr", help="Learning rate for actor and critic", default=0.0003, type=float)
     parser.add_argument("--num-steps", help="Maximum number of steps", default=125001, type=int)
-    parser.add_argument("--updates-per-step", help="Policy updates per environment step", default=1, type=int)
+    parser.add_argument(
+        "--updates-per-step",
+        help="Policy updates per environment step",
+        default=1,
+        type=int,
+    )
 
     args = parser.parse_args()
 
@@ -132,7 +137,13 @@ def train_sac(parser: argparse.ArgumentParser) -> None:
         else:
             from lcer.common.replay_memory import MbpoReplayMemory
 
-            memory = MbpoReplayMemory(args.replay_size, args.seed, v_ratio=args.v_ratio, env_name=args.env_name, args=args)
+            memory = MbpoReplayMemory(
+                args.replay_size,
+                args.seed,
+                v_ratio=args.v_ratio,
+                env_name=args.env_name,
+                args=args,
+            )
     else:
         if args.nmer and args.per:
             from lcer.common.replay_memory import PerNmerReplayMemory
@@ -150,15 +161,27 @@ def train_sac(parser: argparse.ArgumentParser) -> None:
         elif args.nmer:
             from lcer.common.replay_memory import NmerReplayMemory
 
-            memory = NmerReplayMemory(args.replay_size, args.seed, env_name=args.env_name, k_neighbors=args.k_neighbors)
+            memory = NmerReplayMemory(
+                args.replay_size,
+                args.seed,
+                env_name=args.env_name,
+                k_neighbors=args.k_neighbors,
+            )
         elif args.per:
             from lcer.common.replay_memory import PerReplayMemory
 
             state_size = int(np.prod(env.observation_space.shape))
             action_size = int(np.prod(env.action_space.shape))
-            memory = PerReplayMemory(args.replay_size, args.seed, state_dim=state_size, action_dim=action_size)
+            memory = PerReplayMemory(
+                args.replay_size,
+                args.seed,
+                state_dim=state_size,
+                action_dim=action_size,
+            )
         elif args.lcercc:
-            from lcer.common.replay_memory import LocalClusterExperienceReplayClusterCenter
+            from lcer.common.replay_memory import (
+                LocalClusterExperienceReplayClusterCenter,
+            )
 
             state_size = int(np.prod(env.observation_space.shape))
             memory = LocalClusterExperienceReplayClusterCenter(
@@ -170,7 +193,9 @@ def train_sac(parser: argparse.ArgumentParser) -> None:
                 args=args,
             )
         elif args.lcerrm:
-            from lcer.common.replay_memory import LocalClusterExperienceReplayRandomMember
+            from lcer.common.replay_memory import (
+                LocalClusterExperienceReplayRandomMember,
+            )
 
             state_size = int(np.prod(env.observation_space.shape))
             memory = LocalClusterExperienceReplayRandomMember(
@@ -283,13 +308,21 @@ def train_sac(parser: argparse.ArgumentParser) -> None:
                 for i in range(args.updates_per_step):
                     # Update parameters of all the networks
                     if args.per:
-                        critic_1_loss, critic_2_loss, policy_loss, ent_loss, alpha = agent.update_parameters_per(
-                            memory, args.batch_size, updates
-                        )
+                        (
+                            critic_1_loss,
+                            critic_2_loss,
+                            policy_loss,
+                            ent_loss,
+                            alpha,
+                        ) = agent.update_parameters_per(memory, args.batch_size, updates)
                     else:
-                        critic_1_loss, critic_2_loss, policy_loss, ent_loss, alpha = agent.update_parameters(
-                            memory, args.batch_size, updates
-                        )
+                        (
+                            critic_1_loss,
+                            critic_2_loss,
+                            policy_loss,
+                            ent_loss,
+                            alpha,
+                        ) = agent.update_parameters(memory, args.batch_size, updates)
                     updates += 1
 
                 writer.add_scalar("loss/critic_1", critic_1_loss, updates)
@@ -387,12 +420,21 @@ def train_sac_her(parser: argparse.ArgumentParser) -> None:
     # Common arguments
     parser.add_argument("--lr", help="Learning rate for actor and critic", default=0.001, type=float)
     parser.add_argument("--num-steps", help="Maximum number of steps", default=50001, type=int)
-    parser.add_argument("--updates-per-step", help="Policy updates per environment step", default=0, type=int)
+    parser.add_argument(
+        "--updates-per-step",
+        help="Policy updates per environment step",
+        default=0,
+        type=int,
+    )
 
     # Hindsight Experience Replay (HER) arguments
     parser.add_argument("--her-replay-strategy", help="Replay strategy", default="future", type=str)
     parser.add_argument("--her-replay-k", help="Replay k, probability", default=4, type=int)
-    parser.add_argument("--her", help="Whether to use Hindsight Experience Replay (HER) or not", action="store_true")
+    parser.add_argument(
+        "--her",
+        help="Whether to use Hindsight Experience Replay (HER) or not",
+        action="store_true",
+    )
     parser.add_argument(
         "--her-normalize",
         help="Whether to use HER with normalization of observations and goals",
@@ -465,7 +507,7 @@ def train_sac_her(parser: argparse.ArgumentParser) -> None:
             )
 
     # ==================== Agent ====================
-    agent = SAC(env_params["obs"] + env_params["goal"], env.action_space, args)
+    agent = HER(env_params["obs"] + env_params["goal"], env.action_space, args)
     if args.save_agent:
         last_avg_reward_eval = None
 
@@ -515,7 +557,10 @@ def train_sac_her(parser: argparse.ArgumentParser) -> None:
 
             sampler = HerSampler("future", args.her_replay_k, env.compute_reward)
             memory = HerReplayMemory(
-                env_params, args.replay_size, sample_func=sampler.sample_her_transitions, normalize=args.her_normalize
+                env_params,
+                args.replay_size,
+                sample_func=sampler.sample_her_transitions,
+                normalize=args.her_normalize,
             )
         elif args.nmer and args.her:
             from lcer.common.her.replay_memory import HerNmerReplayMemory
@@ -526,13 +571,17 @@ def train_sac_her(parser: argparse.ArgumentParser) -> None:
 
             memory = NmerReplayMemory(env_params, args.replay_size, args=args, normalize=args.her_normalize)
         elif args.lcercc:
-            from lcer.common.her.replay_memory import HerLocalClusterExperienceReplayClusterCenterReplayMemory
+            from lcer.common.her.replay_memory import (
+                HerLocalClusterExperienceReplayClusterCenterReplayMemory,
+            )
 
             memory = HerLocalClusterExperienceReplayClusterCenterReplayMemory(
                 env_params, args.replay_size, args=args, normalize=args.her_normalize
             )
         elif args.lcerrm:
-            from lcer.common.her.replay_memory import HerLocalClusterExperienceReplayRandomMemberReplayMemory
+            from lcer.common.her.replay_memory import (
+                HerLocalClusterExperienceReplayRandomMemberReplayMemory,
+            )
 
             memory = HerLocalClusterExperienceReplayRandomMemberReplayMemory(
                 env_params, args.replay_size, args=args, normalize=args.her_normalize
@@ -620,11 +669,18 @@ def train_sac_her(parser: argparse.ArgumentParser) -> None:
                 transitions = memory.sample_r(batch_size=batch_size, return_transitions=True)
 
                 inputs = np.concatenate(
-                    (transitions["obs"], transitions["ag"], transitions["g"], transitions["actions"]), axis=-1
+                    (
+                        transitions["obs"],
+                        transitions["ag"],
+                        transitions["g"],
+                        transitions["actions"],
+                    ),
+                    axis=-1,
                 )
                 # Difference
                 labels = np.concatenate(
-                    (transitions["obs_next"], transitions["ag_next"], transitions["g"]), axis=-1
+                    (transitions["obs_next"], transitions["ag_next"], transitions["g"]),
+                    axis=-1,
                 ) - np.concatenate((transitions["obs"], transitions["ag"], transitions["g"]), axis=-1)
 
                 # Train the environment model
@@ -643,10 +699,34 @@ def train_sac_her(parser: argparse.ArgumentParser) -> None:
                 o, o_ag, o_g = transitions["obs"], transitions["ag"], transitions["g"]
 
                 # Preallocate
-                v_state = np.empty(shape=(args.n_rollout_samples, memory.rollout_length + 1, env_params["obs"]))
-                v_state_ag = np.empty(shape=(args.n_rollout_samples, memory.rollout_length + 1, env_params["goal"]))
-                v_state_g = np.empty(shape=(args.n_rollout_samples, memory.rollout_length, env_params["goal"]))
-                v_action = np.empty(shape=(args.n_rollout_samples, memory.rollout_length, env_params["action"]))
+                v_state = np.empty(
+                    shape=(
+                        args.n_rollout_samples,
+                        memory.rollout_length + 1,
+                        env_params["obs"],
+                    )
+                )
+                v_state_ag = np.empty(
+                    shape=(
+                        args.n_rollout_samples,
+                        memory.rollout_length + 1,
+                        env_params["goal"],
+                    )
+                )
+                v_state_g = np.empty(
+                    shape=(
+                        args.n_rollout_samples,
+                        memory.rollout_length,
+                        env_params["goal"],
+                    )
+                )
+                v_action = np.empty(
+                    shape=(
+                        args.n_rollout_samples,
+                        memory.rollout_length,
+                        env_params["action"],
+                    )
+                )
 
                 # Rollout
                 for n in range(memory.rollout_length):
@@ -659,20 +739,36 @@ def train_sac_her(parser: argparse.ArgumentParser) -> None:
                     a = agent.select_action(o_)
                     o_2, o_2_ag = get_predicted_states_her(env_model, o, o_ag, o_g, a, env_params)
                     # Push into memory
-                    v_state[:, n], v_state_ag[:, n], v_state_g[:, n], v_action[:, n] = o, o_ag, o_g, a
+                    v_state[:, n], v_state_ag[:, n], v_state_g[:, n], v_action[:, n] = (
+                        o,
+                        o_ag,
+                        o_g,
+                        a,
+                    )
                     o, o_ag = o_2, o_2_ag
                 v_state[:, -1], v_state_ag[:, -1] = o, o_ag
 
                 for n in range(len(v_state)):
-                    memory.push_v([v_state[n][None, :], v_state_ag[n][None, :], v_state_g[n][None, :], v_action[n][None, :]])
+                    memory.push_v(
+                        [
+                            v_state[n][None, :],
+                            v_state_ag[n][None, :],
+                            v_state_g[n][None, :],
+                            v_action[n][None, :],
+                        ]
+                    )
 
             if len(memory) > args.batch_size and args.updates_per_step > 0:
                 # Number of updates per step in environment
                 for i in range(args.updates_per_step):
                     # Update parameters of all the networks
-                    critic_1_loss, critic_2_loss, policy_loss, ent_loss, alpha = agent.update_parameters(
-                        memory, args.batch_size, updates
-                    )
+                    (
+                        critic_1_loss,
+                        critic_2_loss,
+                        policy_loss,
+                        ent_loss,
+                        alpha,
+                    ) = agent.update_parameters(memory, args.batch_size, updates)
                     updates += 1
                 writer.add_scalar("loss/critic_1", critic_1_loss, updates)
                 writer.add_scalar("loss/critic_2", critic_2_loss, updates)
@@ -706,7 +802,10 @@ def train_sac_her(parser: argparse.ArgumentParser) -> None:
                             goal_norm = memory.g_norm.normalize(state_eval["desired_goal"])
                             state_eval_ = np.concatenate((state_norm, goal_norm), axis=-1)
                         else:
-                            state_eval_ = np.concatenate((state_eval["observation"], state_eval["desired_goal"]), axis=-1)
+                            state_eval_ = np.concatenate(
+                                (state_eval["observation"], state_eval["desired_goal"]),
+                                axis=-1,
+                            )
                         action_eval = agent.select_action(state_eval_, evaluate=True)
 
                         next_state_eval, reward_eval, done_eval, info = eval_env.step(action_eval)
@@ -730,7 +829,9 @@ def train_sac_her(parser: argparse.ArgumentParser) -> None:
                 print("----------------------------------------")
                 print(
                     "Timestep Eval - Test Episodes: {}, Avg. Reward: {}, Avg. Success: {}".format(
-                        episodes_eval, round(avg_reward_eval, 2), round(total_success_rate, 3)
+                        episodes_eval,
+                        round(avg_reward_eval, 2),
+                        round(total_success_rate, 3),
                     )
                 )
                 print("----------------------------------------")
@@ -747,7 +848,12 @@ def train_sac_her(parser: argparse.ArgumentParser) -> None:
 
                     if last_avg_reward_eval is None or avg_reward_eval > last_avg_reward_eval:
                         if args.her_normalize:
-                            agent.save_checkpoint(args.env_name, writer.log_dir, total_num_steps, memory=memory)
+                            agent.save_checkpoint(
+                                args.env_name,
+                                writer.log_dir,
+                                total_num_steps,
+                                memory=memory,
+                            )
                         else:
                             agent.save_checkpoint(args.env_name, writer.log_dir, total_num_steps)
                         last_avg_reward_eval = avg_reward_eval
@@ -778,9 +884,13 @@ def train_sac_her(parser: argparse.ArgumentParser) -> None:
             # Number of updates per step in environment
             for i in range(args.n_update_batches):
                 # Update parameters of all the networks
-                critic_1_loss, critic_2_loss, policy_loss, ent_loss, alpha = agent.update_parameters(
-                    memory, args.batch_size, updates
-                )
+                (
+                    critic_1_loss,
+                    critic_2_loss,
+                    policy_loss,
+                    ent_loss,
+                    alpha,
+                ) = agent.update_parameters(memory, args.batch_size, updates)
                 updates += 1
             writer.add_scalar("loss/critic_1", critic_1_loss, updates)
             writer.add_scalar("loss/critic_2", critic_2_loss, updates)
@@ -809,9 +919,23 @@ def train() -> None:
     parser = argparse.ArgumentParser(description="Local Cluster Experience Replay (LCER) Trainings Script - Arguments")
 
     # Common arguments
-    parser.add_argument("--algo", help="RL Algorithm", default="sac", type=str, required=False, choices=list(ALGOS.keys()))
+    parser.add_argument(
+        "--algo",
+        help="RL Algorithm",
+        default="sac",
+        type=str,
+        required=False,
+        choices=list(ALGOS.keys()),
+    )
     parser.add_argument("--env-name", help="Environment ID", default="Hopper-v2", type=str)
-    parser.add_argument("--policy", help="Policy type", default="Gaussian", type=str, required=False, choices=POLICIES)
+    parser.add_argument(
+        "--policy",
+        help="Policy type",
+        default="Gaussian",
+        type=str,
+        required=False,
+        choices=POLICIES,
+    )
     parser.add_argument("--no-eval", help="Whether to evaluate the policy or not", action="store_true")
 
     args = parser.parse_args()
@@ -842,7 +966,12 @@ def train() -> None:
 
     parser.add_argument("--seed", help="Random seed", default=123456, type=int)
     parser.add_argument("--batch-size", help="Batch size", default=256, type=int)
-    parser.add_argument("--hidden-size", help="Hidden size of actor and critic network", default=256, type=int)
+    parser.add_argument(
+        "--hidden-size",
+        help="Hidden size of actor and critic network",
+        default=256,
+        type=int,
+    )
     parser.add_argument("--start-steps", help="Steps sampling random actions", default=5000, type=int)
     parser.add_argument(
         "--target-update-interval",
@@ -869,7 +998,12 @@ def train() -> None:
         action="store_true",
     )
     parser.add_argument("--v-ratio", help="Virtual to real data ratio", default=0.95, type=float)
-    parser.add_argument("--update-env-model", help="When to update the dynamics model, in timesteps", default=250, type=int)
+    parser.add_argument(
+        "--update-env-model",
+        help="When to update the dynamics model, in timesteps",
+        default=250,
+        type=int,
+    )
     parser.add_argument(
         "--n-training-samples",
         help="Number of samples to train the dynamics model on",
@@ -884,11 +1018,20 @@ def train() -> None:
     )
     parser.add_argument("--model-retain-epochs", help="How many epochs to retain", default=1, type=int)
     parser.add_argument("--epoch-length", help="Steps per epoch", default=1000, type=int)
-    parser.add_argument("--rollout-min-epoch", help="Rollout starts from min epoch", default=20, type=int)
+    parser.add_argument(
+        "--rollout-min-epoch",
+        help="Rollout starts from min epoch",
+        default=20,
+        type=int,
+    )
     parser.add_argument("--rollout-max-epoch", help="Rollout ends at max epoch", default=150, type=int)
     parser.add_argument("--rollout-min-length", help="Rollout has min length", default=1, type=int)
     parser.add_argument("--rollout-max-length", help="Rollout has max length", default=15, type=int)
-    parser.add_argument("--deterministic-model", help="Use deterministic model-based model", action="store_true")
+    parser.add_argument(
+        "--deterministic-model",
+        help="Use deterministic model-based model",
+        action="store_true",
+    )
 
     # Neighborhood Mixup Experience Replay (NMER) arguments
     parser.add_argument(
@@ -899,7 +1042,11 @@ def train() -> None:
     parser.add_argument("--k-neighbors", help="Amount of neighbors", default=10, type=int)
 
     # Prioritized Experience Replay (PER) arguments
-    parser.add_argument("--per", help="Whether to use Prioritized Experience Replay (PER) or not", action="store_true")
+    parser.add_argument(
+        "--per",
+        help="Whether to use Prioritized Experience Replay (PER) or not",
+        action="store_true",
+    )
 
     # Local Cluster Experience Replay (LCER) arguments
     parser.add_argument(

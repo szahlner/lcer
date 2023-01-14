@@ -103,7 +103,12 @@ class EnsembleFC(nn.Module):
     weight: torch.Tensor
 
     def __init__(
-        self, in_features: int, out_features: int, ensemble_size: int, weight_decay: float = 0.0, bias: bool = True
+        self,
+        in_features: int,
+        out_features: int,
+        ensemble_size: int,
+        weight_decay: float = 0.0,
+        bias: bool = True,
     ) -> None:
         super(EnsembleFC, self).__init__()
         self.in_features = in_features
@@ -164,8 +169,14 @@ class EnsembleModel(nn.Module):
         # Add variance output
         self.nn5 = EnsembleFC(hidden_size, self.output_dim * 2, ensemble_size, weight_decay=0.0001)
 
-        self.max_log_var = nn.Parameter((torch.ones((1, self.output_dim)).float() / 2).to(device), requires_grad=False)
-        self.min_log_var = nn.Parameter((-torch.ones((1, self.output_dim)).float() * 10).to(device), requires_grad=False)
+        self.max_log_var = nn.Parameter(
+            (torch.ones((1, self.output_dim)).float() / 2).to(device),
+            requires_grad=False,
+        )
+        self.min_log_var = nn.Parameter(
+            (-torch.ones((1, self.output_dim)).float() * 10).to(device),
+            requires_grad=False,
+        )
         self.optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate)
         self.apply(init_weights)
         self.swish = Swish()
@@ -196,7 +207,10 @@ class EnsembleModel(nn.Module):
 
     @staticmethod
     def loss(
-        mean: torch.Tensor, log_var: torch.Tensor, labels: torch.Tensor, inc_var_loss: bool = True
+        mean: torch.Tensor,
+        log_var: torch.Tensor,
+        labels: torch.Tensor,
+        inc_var_loss: bool = True,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Returns the loss
@@ -268,7 +282,12 @@ class EnsembleDynamicsModel:
         self.network_size = network_size
         self.elite_model_idxes = []
         self.ensemble_model = EnsembleModel(
-            state_size, action_size, reward_size, network_size, hidden_size, use_decay=use_decay
+            state_size,
+            action_size,
+            reward_size,
+            network_size,
+            hidden_size,
+            use_decay=use_decay,
         )
         self.scaler = StandardScaler()
 
