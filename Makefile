@@ -1,3 +1,5 @@
+# Mostly taken from stablebaselines3 at: https://github.com/DLR-RM/stable-baselines3/blob/master/Makefile
+
 SHELL=/bin/bash
 LINT_PATHS=lcer/ tests/
 
@@ -23,3 +25,13 @@ check-codestyle:
 	isort --check ${LINT_PATHS}
 	# Reformat using black
 	black --check -l 127 ${LINT_PATHS}
+
+# Build docker images
+# If you do export RELEASE=True, it will also push them
+docker: docker-cpu docker-gpu
+
+docker-cpu:
+	./scripts/build_docker.sh
+
+docker-gpu:
+	USE_GPU=True ./scripts/build_docker.sh

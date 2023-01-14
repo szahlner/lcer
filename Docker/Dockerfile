@@ -1,13 +1,13 @@
+ARG PARENT_IMAGE
+FROM $PARENT_IMAGE
+ARG PYTORCH_DEPS=cpuonly
 ARG PYTHON_VERSION=3.7
+
 ARG DEBIAN_FRONTEND=noninteractive
-
-FROM ubuntu:20.04
-
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         apt-utils \
         build-essential \
-        curl \
         xvfb \
         ffmpeg \
         xorg-dev \
@@ -32,36 +32,43 @@ RUN apt-get update \
         libjpeg-dev \
         libpng-dev \
         libglib2.0-0 \
+        wget \
         bash
 RUN rm -rf /var/lib/apt/lists/*
 
 # Install Anaconda and dependencies
-RUN curl -o ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
-     chmod +x ~/miniconda.sh && \
-     bash ~/miniconda.sh -b -p /opt/conda && \
-     rm ~/miniconda.sh && \
-     /opt/conda/bin/conda install -y python=$PYTHON_VERSION numpy scipy && \
-     # /opt/conda/bin/conda install -y pytorch $PYTORCH_DEPS -c pytorch && \
-     /opt/conda/bin/conda clean -ya
-ENV PATH /opt/conda/bin:$PATH
+RUN wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh \
+    && mkdir /root/.conda \
+    && bash miniconda.sh -b \
+    && rm miniconda.sh
+ENV PATH /root/miniconda3/bin:$PATH
+RUN conda install -y python=$PYTHON_VERSION numpy
 
 # Download mujoco
-RUN mkdir /root/.mujoco && \
-    wget -q https://mujoco.org/download/mujoco210-linux-x86_64.tar.gz -O mujoco.tar.gz && \
-    tar -zxf mujoco.tar.gz -C "/root/.mujoco" && \
-    rm mujoco.tar.gz
+RUN mkdir /root/.mujoco \
+    && wget -q https://mujoco.org/download/mujoco210-linux-x86_64.tar.gz -O mujoco.tar.gz \
+    && tar -zxf mujoco.tar.gz -C "/root/.mujoco" \
+    && rm mujoco.tar.gz
 
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/.mujoco/mujoco210/bin
 ENV LD_PRELOAD=$LD_PRELOAD:/usr/lib/x86_64-linux-gnu/libGLEW.so
 
 # Copy to image and set workdir
-COPY . /home/
+COPY ./Docker/ /home/
 WORKDIR /home/
 
-# Upgrade pip3
-RUN pip install --upgrade pip
+# Upgrade pip
+RUN pip install --upgrade pip \
+    && pip install -r /home/requirements.txt \
+    && conda install -y -c conda-forge mpi4py openmpi \
+    && conda install -y pytorch $PYTORCH_DEPS -c pytorch
 
-# Run install
-# RUN pip3 install .[nomujoco] && pip3 install -r requirements.txt
-RUN pip install -r requirements.txt
-RUN pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113
+# Remove requirements and Dockerfile
+RUN rm /home/requirements.txt \
+    && rm /home/Dockerfile
+
+# Install lcer and shadowhand-gym and prepare to run the experiments
+RUN chmod +x ./update.sh \
+    && ./update.sh
+
+ENTRYPOINT ["/bin/bash"]
