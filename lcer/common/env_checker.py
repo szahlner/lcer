@@ -158,8 +158,8 @@ def _check_returned_values(env: gym.Env, observation_space: spaces.Space, action
         _check_obs(obs, observation_space, "step")
 
     # We also allow int because the reward will be cast to float
-    assert isinstance(reward, (float, int)), "The reward returned by `step()` must be a float"
-    assert isinstance(done, bool), "The `done` signal must be a boolean"
+    assert isinstance(reward, (bool, float, int)), "The reward returned by `step()` must be a float"
+    assert isinstance(done, (bool, float)), "The `done` signal must be a boolean"
     assert isinstance(info, dict), "The `info` returned by `step()` must be a python dictionary"
 
     # Goal conditioned env
