@@ -1069,6 +1069,8 @@ def train() -> None:
     args = parser.parse_args()
     if args.algo == "sac":
         train_sac(parser)
+    else:
+        train_sac_her(parser)
 
 
 if __name__ == "__main__":
