@@ -18,19 +18,7 @@ from lcer.common.env_checker import check_env
 from lcer.common.utils import get_env_params, get_predicted_states_her
 
 
-def train_sac(parser: argparse.ArgumentParser) -> None:
-    # Common arguments
-    parser.add_argument("--lr", help="Learning rate for actor and critic", default=0.0003, type=float)
-    parser.add_argument("--num-steps", help="Maximum number of steps", default=125001, type=int)
-    parser.add_argument(
-        "--updates-per-step",
-        help="Policy updates per environment step",
-        default=1,
-        type=int,
-    )
-
-    args = parser.parse_args()
-
+def train_sac(args: argparse.Namespace) -> None:
     # ==================== Environments ====================
     env = gym.make(args.env_name)
     eval_env = gym.make(args.env_name)
@@ -416,37 +404,7 @@ def train_sac(parser: argparse.ArgumentParser) -> None:
     env.close()
 
 
-def train_sac_her(parser: argparse.ArgumentParser) -> None:
-    # Common arguments
-    parser.add_argument("--lr", help="Learning rate for actor and critic", default=0.001, type=float)
-    parser.add_argument("--num-steps", help="Maximum number of steps", default=50001, type=int)
-    parser.add_argument(
-        "--updates-per-step",
-        help="Policy updates per environment step",
-        default=0,
-        type=int,
-    )
-
-    # Hindsight Experience Replay (HER) arguments
-    parser.add_argument("--her-replay-strategy", help="Replay strategy", default="future", type=str)
-    parser.add_argument("--her-replay-k", help="Replay k, probability", default=4, type=int)
-    parser.add_argument(
-        "--her",
-        help="Whether to use Hindsight Experience Replay (HER) or not",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--her-normalize",
-        help="Whether to use HER with normalization of observations and goals",
-        action="store_true",
-    )
-    parser.add_argument("--n-update-batches", help="Updates per rollout", default=20, type=int)
-
-    args = parser.parse_args()
-    assert (
-        args.updates_per_step > 0 and args.n_update_batches == 0 or args.updates_per_step == 0 and args.n_update_batches > 0
-    ), "One of --updates-per-step or --n-update-batches must be zero (0)"
-
+def train_sac_her(args: argparse.Namespace) -> None:
     # ==================== Environments ====================
     if "ShadowHandReach" in args.env_name or "ShadowHandBlock" in args.env_name:
         import shadowhand_gym
@@ -918,7 +876,7 @@ def train_sac_her(parser: argparse.ArgumentParser) -> None:
 def train() -> None:
     parser = argparse.ArgumentParser(description="Local Cluster Experience Replay (LCER) Trainings Script - Arguments")
 
-    # Common arguments
+    # ==================== Common arguments ====================
     parser.add_argument(
         "--algo",
         help="RL Algorithm",
@@ -928,6 +886,14 @@ def train() -> None:
         choices=list(ALGOS.keys()),
     )
     parser.add_argument("--env-name", help="Environment ID", default="Hopper-v2", type=str)
+    parser.add_argument("--lr", help="Learning rate for actor and critic", default=0.0003, type=float)
+    parser.add_argument("--num-steps", help="Maximum number of steps", default=125001, type=int)
+    parser.add_argument(
+        "--updates-per-step",
+        help="Policy updates per environment step",
+        default=1,
+        type=int,
+    )
     parser.add_argument(
         "--policy",
         help="Policy type",
@@ -937,13 +903,6 @@ def train() -> None:
         choices=POLICIES,
     )
     parser.add_argument("--no-eval", help="Whether to evaluate the policy or not", action="store_true")
-
-    args = parser.parse_args()
-    if args.no_eval:
-        parser.add_argument("--eval", action="store_true")
-    else:
-        parser.add_argument("--eval", action="store_false")
-
     parser.add_argument("--gamma", help="Discount factor for reward", default=0.99, type=float)
     parser.add_argument("--tau", help="Target smoothing coefficient", default=0.005, type=float)
     parser.add_argument(
@@ -957,13 +916,6 @@ def train() -> None:
         help="Whether to automatically adjust alpha (temperature parameter) or not",
         action="store_false",
     )
-
-    args = parser.parse_args()
-    if args.no_automatic_entropy_tuning:
-        parser.add_argument("--automatic-entropy-tuning", action="store_true")
-    else:
-        parser.add_argument("--automatic-entropy-tuning", action="store_false")
-
     parser.add_argument("--seed", help="Random seed", default=123456, type=int)
     parser.add_argument("--batch-size", help="Batch size", default=256, type=int)
     parser.add_argument(
@@ -983,15 +935,11 @@ def train() -> None:
     parser.add_argument("--target-entropy", help="Target entropy", default=-1, type=float)
     parser.add_argument("--eval-episodes", help="How many episodes to eval", default=10, type=int)
     parser.add_argument("--cuda", help="Whether to use CUDA or not", action="store_true")
-
-    args = parser.parse_args()
-    args.cuda = True if torch.cuda.is_available() else False
-
     parser.add_argument("--eval-timesteps", help="When to evaluate the policy", default=1000, type=int)
     parser.add_argument("--save-agent", help="Whether or not to save the agent", action="store_true")
     parser.add_argument("--keep-best-agents", help="Keep best X agents", default=10, type=int)
 
-    # Model-Based Policy Optimization (MBPO) arguments
+    # ==================== Model-Based Policy Optimization (MBPO) arguments ====================
     parser.add_argument(
         "--model-based",
         help="Whether to use Model-Based Policy Optimization (MBPO) model-based RL or not",
@@ -1033,7 +981,7 @@ def train() -> None:
         action="store_true",
     )
 
-    # Neighborhood Mixup Experience Replay (NMER) arguments
+    # ==================== Neighborhood Mixup Experience Replay (NMER) arguments ====================
     parser.add_argument(
         "--nmer",
         help="Whether to use Neighborhood Mixup Experience Replay (NMER) or not",
@@ -1041,14 +989,29 @@ def train() -> None:
     )
     parser.add_argument("--k-neighbors", help="Amount of neighbors", default=10, type=int)
 
-    # Prioritized Experience Replay (PER) arguments
+    # ==================== Prioritized Experience Replay (PER) arguments ====================
     parser.add_argument(
         "--per",
         help="Whether to use Prioritized Experience Replay (PER) or not",
         action="store_true",
     )
 
-    # Local Cluster Experience Replay (LCER) arguments
+    # ==================== Hindsight Experience Replay (HER) arguments ====================
+    parser.add_argument("--her-replay-strategy", help="Replay strategy", default="future", type=str)
+    parser.add_argument("--her-replay-k", help="Replay k, probability", default=4, type=int)
+    parser.add_argument(
+        "--her",
+        help="Whether to use Hindsight Experience Replay (HER) or not",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--her-normalize",
+        help="Whether to use HER with normalization of observations and goals",
+        action="store_true",
+    )
+    parser.add_argument("--n-update-batches", help="Updates per rollout", default=0, type=int)
+
+    # ==================== Local Cluster Experience Replay (LCER) arguments ====================
     parser.add_argument(
         "--lcercc",
         help="Whether to use Local Cluster Experience Replay Cluster Center (LCER-CC) or not",
@@ -1062,15 +1025,32 @@ def train() -> None:
     parser.add_argument("--n-clusters", help="Amount of clusters to use for LCER", default=-1, type=int)
 
     args = parser.parse_args()
+    # ==================== Additional arguments ====================
+    if args.no_eval:
+        parser.add_argument("--eval", action="store_true")
+    else:
+        parser.add_argument("--eval", action="store_false")
+
+    args.cuda = True if torch.cuda.is_available() else False
+
+    if args.no_automatic_entropy_tuning:
+        parser.add_argument("--automatic-entropy-tuning", action="store_true")
+    else:
+        parser.add_argument("--automatic-entropy-tuning", action="store_false")
+
+    args = parser.parse_args()
+    assert (
+        args.updates_per_step > 0 and args.n_update_batches == 0 or args.updates_per_step == 0 and args.n_update_batches > 0
+    ), "One of --updates-per-step or --n-update-batches must be zero (0)"
+
     assert (
         args.lcercc and not args.lcerrm or not args.lcercc and args.lcerrm or not args.lcercc and not args.lcerrm
     ), "LCER-CC and LCER-RM must not be both active at the same time"
 
-    args = parser.parse_args()
     if args.algo == "sac":
-        train_sac(parser)
+        train_sac(args)
     else:
-        train_sac_her(parser)
+        train_sac_her(args)
 
 
 if __name__ == "__main__":
