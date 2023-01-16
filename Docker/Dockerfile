@@ -1,6 +1,6 @@
 ARG PARENT_IMAGE
 FROM $PARENT_IMAGE
-ARG PYTORCH_DEPS=cpuonly
+ARG PYTORCH_INSTALL pip install --no-input torch==1.11.0+cpu torchvision==0.12.0+cpu torchaudio==0.11.0 --extra-index-url https://download.pytorch.org/whl/cpu
 ARG PYTHON_VERSION=3.7
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -58,10 +58,12 @@ COPY ./Docker/ /home/
 WORKDIR /home/
 
 # Upgrade pip
-RUN pip install --upgrade pip \
-    && pip install -r /home/requirements.txt \
-    && conda install -y -c conda-forge mpi4py openmpi \
-    && conda install -y pytorch $PYTORCH_DEPS -c pytorch
+RUN pip install --upgrade pip
+# Install requirements and mpi4py
+RUN pip install -r /home/requirements.txt \
+    && conda install -y -c conda-forge mpi4py openmpi
+# Install pytorch
+RUN $PYTORCH_INSTALL
 
 # Remove requirements and Dockerfile
 RUN rm /home/requirements.txt \
