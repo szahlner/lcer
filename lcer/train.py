@@ -1031,14 +1031,14 @@ def train() -> None:
     else:
         parser.add_argument("--eval", action="store_false")
 
-    args.cuda = True if torch.cuda.is_available() else False
-
     if args.no_automatic_entropy_tuning:
         parser.add_argument("--automatic-entropy-tuning", action="store_true")
     else:
         parser.add_argument("--automatic-entropy-tuning", action="store_false")
 
     args = parser.parse_args()
+    args.cuda = True if torch.cuda.is_available() else False
+
     assert (
         args.updates_per_step > 0 and args.n_update_batches == 0 or args.updates_per_step == 0 and args.n_update_batches > 0
     ), "One of --updates-per-step or --n-update-batches must be zero (0)"
