@@ -1,6 +1,6 @@
 ARG PARENT_IMAGE
 FROM $PARENT_IMAGE
-ARG PYTORCH_INSTALL pip install --no-input torch==1.11.0+cpu torchvision==0.12.0+cpu torchaudio==0.11.0 --extra-index-url https://download.pytorch.org/whl/cpu
+ARG PYTORCH_INSTALL pip install --no-input torch==1.11.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu
 ARG PYTHON_VERSION=3.7
 
 ARG DEBIAN_FRONTEND=noninteractive
