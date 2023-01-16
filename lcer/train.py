@@ -874,7 +874,7 @@ def train_sac_her(args: argparse.Namespace) -> None:
 
 
 def train() -> None:
-    parser = argparse.ArgumentParser(description="Local Cluster Experience Replay (LCER) Trainings Script - Arguments")
+    parser = argparse.ArgumentParser(description="Local Cluster Experience Replay (LCER) Training Script - Arguments")
 
     # ==================== Common arguments ====================
     parser.add_argument(
