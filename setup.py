@@ -6,8 +6,9 @@ with open(os.path.join("lcer", "version.txt")) as file_handler:
     __version__ = file_handler.read().strip()
 
 long_description = """
-# RL Baselines3 Zoo: A Training Framework for Stable Baselines3 Reinforcement Learning Agents
-See https://github.com/DLR-RM/rl-baselines3-zoo
+# Local Cluster Experience Replay (LCER)
+LCER is an application for replay-buffers to increase the sample efficiency of off-policy reinforcement learning algorithms. The goal is to reduce the number of required interactions with the environment to maximize the per step reward and, in turn, the cumulative reward. At the same time, the additional overhead in terms of implementation effort and computational power should be kept at a minimum.
+See https://github.com/szahlner/lcer
 """
 
 setup(
@@ -18,7 +19,6 @@ setup(
             "version.txt",
         ]
     },
-    # entry_points={"console_scripts": ["rl_zoo3=rl_zoo3.cli:main"]},
     install_requires=[
         "numpy",
         "torch",
@@ -27,9 +27,6 @@ setup(
         "mpi4py",
         "pytest",
     ],
-    # extras_require={
-    #     "plots": ["seaborn", "rliable>=1.0.5", "scipy~=1.7.3"],
-    # },
     description="Local Cluster Experience Replay (LCER)",
     author="Stefan Zahlner",
     url="https://github.com/szahlner/lcer",
