@@ -24,8 +24,11 @@ def enjoy() -> None:
     parser.add_argument("--config", help="Config-file file path", default="", type=str)
     parser.add_argument("--random-actions", help="Use random actions", action="store_true")
     parser.add_argument("--make-gif", help="Whether to make a gif or not", action="store_true")
-    parser.add_argument("--add-episodes", help="Whether to add episodes to the gif or not", action="store_true")
+    parser.add_argument("--add-episodes", help="Whether to add episodes to the GIF or not", action="store_true")
     parser.add_argument("--n-enjoy-episodes", help="How many episodes to enjoy", default=10, type=int)
+    parser.add_argument("--take-every-n-frames", help="Take every nth frame in the GIF", default=1, type=int)
+    parser.add_argument("--gif-image-width", help="Width of the GIF in pixel", default=250, type=int)
+    parser.add_argument("--gif-image-height", help="Height of the GIF in pixel", default=250, type=int)
 
     arguments = parser.parse_args()
 
@@ -35,12 +38,17 @@ def enjoy() -> None:
         arguments.config = os.path.join(os.path.dirname(arguments.checkpoint), "config.json")
 
     assert os.path.exists(arguments.config), f'Config-file does not exist: "{arguments.config}"'
+    assert arguments.take_every_n_frames > 0, 'Argument "--take-every-n-frames" must be a positive integer'
+    assert arguments.gif_image_width > 0, "GIF image width must be greater than 0"
+    assert arguments.gif_image_height > 0, "GIF image height must be > 0"
 
     if arguments.add_episodes:
         assert arguments.make_gif, '"--make-gif" needs to be set to add episodes'
 
     with open(arguments.config, "rb") as f:
         args = SimpleNamespace(**json.load(f))
+
+    # Rename for convenience
     args.cuda = True if torch.cuda.is_available() else False
     args.checkpoint = arguments.checkpoint
     args.config = arguments.config
@@ -48,6 +56,9 @@ def enjoy() -> None:
     args.make_gif = arguments.make_gif
     args.add_episodes = arguments.add_episodes
     args.n_enjoy_episodes = arguments.n_enjoy_episodes
+    args.take_every_n_frames = arguments.take_every_n_frames
+    args.gif_image_width = arguments.gif_image_width
+    args.gif_image_height = arguments.gif_image_height
 
     # ==================== Environments ====================
     if "ShadowHandReach" in args.env_name or "ShadowHandBlock" in args.env_name:
@@ -81,10 +92,9 @@ def enjoy() -> None:
             image_font = ImageFont.truetype("arial.ttf", 25)
 
         if "ShadowHandReach" not in args.env_name and "ShadowHandBlock" not in args.env_name:
-            from gym.wrappers.monitoring.video_recorder import VideoRecorder
-
-            video_path = os.path.join(os.path.dirname(args.checkpoint), "video.mp4")
-            video_recorder = VideoRecorder(env, video_path, enabled=video_path is not None)
+            # This seems wierd, but if you use MuJoCo as renderer you need to call .render() before using mode="rgb_array"
+            env.reset()
+            env.render()
     
     # ==================== Enjoy ====================
     for n in range(args.n_enjoy_episodes):
@@ -102,19 +112,15 @@ def enjoy() -> None:
                 action = agent.select_action(state, evaluate=True)
             state, reward, done, info = env.step(action)
             
-            if args.make_gif: 
-                if "ShadowHandReach" in args.env_name or "ShadowHandBlock" in args.env_name:
-                    image = env.render(mode="rgb_array")
-                else:
-                    env.render(mode="human")
-                    video_recorder.capture_frame()
-                    image = video_recorder.last_frame
+            if args.make_gif:
+                image = env.render(mode="rgb_array")
+                image = Image.fromarray(image)
+                image = image.resize((args.gif_image_width, args.gif_image_height))
 
                 if args.add_episodes:
-                    image = Image.fromarray(image)
                     image_draw = ImageDraw.Draw(image)
                     image_draw.text((5, 5), f"Episode: {n+1}", font=image_font, fill=(255, 0, 0))
-                    image = np.array(image)
+                image = np.array(image)
                 images.append(image)
             else:
                 env.render()
@@ -130,19 +136,8 @@ def enjoy() -> None:
     env.close()
 
     if args.make_gif:
-        if "ShadowHandReach" not in args.env_name and "ShadowHandBlock" not in args.env_name:
-            video_recorder.close()
-            video_recorder.enabled = False
-
-            if os.path.exists(video_path):
-                os.remove(video_path)
-
-            video_meta_path = os.path.join(os.path.dirname(args.checkpoint), "video.meta.json")
-            if os.path.exists(video_meta_path):
-                os.remove(video_meta_path)
-
         gif_path = os.path.join(os.path.dirname(args.checkpoint), f"{args.env_name}.gif")
-        imageio.mimsave(gif_path, images, duration=0.04)
+        imageio.mimsave(gif_path, images[::args.take_every_n_frames])
 
 
 if __name__ == "__main__":
