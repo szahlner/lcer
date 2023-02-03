@@ -1,7 +1,8 @@
 ARG PARENT_IMAGE
 FROM $PARENT_IMAGE
-ARG PYTORCH_INSTALL pip install --no-input torch==1.11.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu
-ARG PYTHON_VERSION=3.7
+ARG PYTORCH_INSTALL="pip install --no-input torch==1.11.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu"
+ARG FAISS_INSTALL="conda install -c pytorch faiss-gpu cudatoolkit=11.3"
+ARG PYTHON_VERSION="3.7"
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
@@ -64,6 +65,8 @@ RUN pip install -r /home/requirements.txt \
     && conda install -y -c conda-forge mpi4py openmpi
 # Install pytorch
 RUN $PYTORCH_INSTALL
+# Install faiss
+RUN $FAISS_INSTALL
 
 # Remove requirements and Dockerfile
 RUN rm /home/requirements.txt \
