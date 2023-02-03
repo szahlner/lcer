@@ -8,3 +8,5 @@ tensorboard
 scikit-learn
 fast_pytorch_kmeans
 pytest
+matplotlib
+seaborn
