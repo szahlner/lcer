@@ -57,7 +57,7 @@ def pendulum() -> None:
     ENV_ID = "InvertedPendulum-v2"
     SEED = 123
     MAX_NUMSTEPS = 50000
-    STEPS = 2500
+    STEPS = 1250
     RESOLUTION_STEPS = 5000
     K_NEIGHBORS = 10
     EXPERIMENT_PATH = "."
@@ -329,9 +329,7 @@ def pendulum() -> None:
             end = time.time()
             mbpo_time_array[k, n] = end - start
 
-            print(f"{ENV_ID} \t - \t n: {n + 1} \t - \t k: {k + 1}")
-
-        print(f"{ENV_ID} \t - \t n: {n + 1} \t - \t k: {k + 1}")
+            print(f"{ENV_ID} \t - \t n: {n + 1} \t - \t k: {k + 1} \t - \t timesteps: {eval_timesteps}")
 
     nn_time_median = np.median(nn_time_array, axis=-1)
     nn_faiss_time_median = np.median(nn_faiss_time_array, axis=-1)
@@ -357,7 +355,7 @@ def pendulum() -> None:
     plt.plot(x_axis, nn_faiss_time_median, linewidth=1.5, label="FAISS Nearest Neighbors")
     plt.plot(x_axis, kmeans_time_median, linewidth=1.5, label="k-Means")
     plt.plot(x_axis, kmeans_gpu_time_median, linewidth=1.5, label="k-Means (GPU)")
-    plt.plot(x_axis, mbpo_time_median, linewidth=1.5, label="k-Means (GPU)")
+    plt.plot(x_axis, mbpo_time_median, linewidth=1.5, label="fit dynamics model (MBPO)")
     plt.title(ENV_ID)
     plt.ylabel("Median time in seconds")
     plt.xticks(x_axis, x_ticks_labels, rotation=0)
@@ -395,7 +393,7 @@ def hopper() -> None:
     ENV_ID = "Hopper-v2"
     SEED = 123
     MAX_NUMSTEPS = 50000
-    STEPS = 2500
+    STEPS = 1250
     RESOLUTION_STEPS = 5000
     K_NEIGHBORS = 10
     EXPERIMENT_PATH = "."
@@ -666,9 +664,7 @@ def hopper() -> None:
             end = time.time()
             mbpo_time_array[k, n] = end - start
 
-            print(f"{ENV_ID} \t - \t n: {n + 1} \t - \t k: {k + 1}")
-
-        print(f"{ENV_ID} \t - \t n: {n + 1} \t - \t k: {k + 1}")
+            print(f"{ENV_ID} \t - \t n: {n + 1} \t - \t k: {k + 1} \t - \t timesteps: {eval_timesteps}")
 
     nn_time_median = np.median(nn_time_array, axis=-1)
     nn_faiss_time_median = np.median(nn_faiss_time_array, axis=-1)
@@ -694,7 +690,7 @@ def hopper() -> None:
     plt.plot(x_axis, nn_faiss_time_median, linewidth=1.5, label="FAISS Nearest Neighbors")
     plt.plot(x_axis, kmeans_time_median, linewidth=1.5, label="k-Means")
     plt.plot(x_axis, kmeans_gpu_time_median, linewidth=1.5, label="k-Means (GPU)")
-    plt.plot(x_axis, mbpo_time_median, linewidth=1.5, label="k-Means (GPU)")
+    plt.plot(x_axis, mbpo_time_median, linewidth=1.5, label="fit dynamics model (MBPO)")
     plt.title(ENV_ID)
     plt.ylabel("Median time in seconds")
     plt.xticks(x_axis, x_ticks_labels, rotation=0)
@@ -732,7 +728,7 @@ def hand():
     ENV_ID = "ShadowHandReach-v1"
     SEED = 123
     MAX_NUMSTEPS = 50000
-    STEPS = 2500
+    STEPS = 1250
     RESOLUTION_STEPS = 5000
     K_NEIGHBORS = 10
     EXPERIMENT_PATH = "."
@@ -1036,9 +1032,7 @@ def hand():
             end = time.time()
             mbpo_time_array[k, n] = end - start
 
-            print(f"{ENV_ID} \t - \t n: {n + 1} \t - \t k: {k + 1}")
-
-        print(f"{ENV_ID} \t - \t n: {n + 1} \t - \t k: {k + 1}")
+            print(f"{ENV_ID} \t - \t n: {n + 1} \t - \t k: {k + 1} \t - \t timesteps: {eval_timesteps}")
 
     nn_time_median = np.median(nn_time_array, axis=-1)
     nn_faiss_time_median = np.median(nn_faiss_time_array, axis=-1)
@@ -1064,7 +1058,7 @@ def hand():
     plt.plot(x_axis, nn_faiss_time_median, linewidth=1.5, label="FAISS Nearest Neighbors")
     plt.plot(x_axis, kmeans_time_median, linewidth=1.5, label="k-Means")
     plt.plot(x_axis, kmeans_gpu_time_median, linewidth=1.5, label="k-Means (GPU)")
-    plt.plot(x_axis, mbpo_time_median, linewidth=1.5, label="k-Means (GPU)")
+    plt.plot(x_axis, mbpo_time_median, linewidth=1.5, label="fit dynamics model (MBPO)")
     plt.title(ENV_ID)
     plt.ylabel("Median time in seconds")
     plt.xticks(x_axis, x_ticks_labels, rotation=0)
