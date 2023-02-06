@@ -1,7 +1,7 @@
 ARG PARENT_IMAGE
 FROM $PARENT_IMAGE
 ARG PYTORCH_INSTALL="pip install --no-input torch==1.11.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu"
-ARG FAISS_INSTALL="conda install -c pytorch faiss-gpu cudatoolkit=11.3"
+ARG FAISS_INSTALL="conda install -c pytorch faiss-cpu"
 ARG PYTHON_VERSION="3.7"
 
 ARG DEBIAN_FRONTEND=noninteractive
