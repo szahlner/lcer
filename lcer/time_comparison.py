@@ -178,11 +178,12 @@ def pendulum() -> None:
 
             # NearestNeighbors - object
             if k == 0:
-                gpu_resource = faiss.StandardGpuResources()  # use a single GPU
-                cpu_index = faiss.IndexFlatL2(z_space_norm.shape[1])  # create a CPU index
-                gpu_index = faiss.index_cpu_to_gpu(gpu_resource, 0, cpu_index)  # transfer the index to GPU
-            gpu_index.add(z_space_norm)  # add vectors to the index
-            _, array_knn_indices_gpu = gpu_index.search(z_space_norm, K_NEIGHBORS)  # _ = distances
+                faiss_index = faiss.IndexFlatL2(z_space_norm.shape[1])  # create a CPU index
+                if faiss.get_num_gpus() > 0:
+                    gpu_resource = faiss.StandardGpuResources()  # use a single GPU
+                    faiss_index = faiss.index_cpu_to_gpu(gpu_resource, 0, faiss_index)  # transfer the index to GPU
+            faiss_index.add(z_space_norm)  # add vectors to the index
+            _, array_knn_indices_gpu = faiss_index.search(z_space_norm, K_NEIGHBORS)  # _ = distances
 
             end = time.time()
             nn_faiss_time_array[k, n] = end - start
@@ -514,11 +515,12 @@ def hopper() -> None:
 
             # NearestNeighbors - object
             if k == 0:
-                gpu_resource = faiss.StandardGpuResources()  # use a single GPU
-                cpu_index = faiss.IndexFlatL2(z_space_norm.shape[1])  # create a CPU index
-                gpu_index = faiss.index_cpu_to_gpu(gpu_resource, 0, cpu_index)  # transfer the index to GPU
-            gpu_index.add(z_space_norm)  # add vectors to the index
-            _, array_knn_indices_gpu = gpu_index.search(z_space_norm, K_NEIGHBORS)  # _ = distances
+                faiss_index = faiss.IndexFlatL2(z_space_norm.shape[1])  # create a CPU index
+                if faiss.get_num_gpus() > 0:
+                    gpu_resource = faiss.StandardGpuResources()  # use a single GPU
+                    faiss_index = faiss.index_cpu_to_gpu(gpu_resource, 0, faiss_index)  # transfer the index to GPU
+            faiss_index.add(z_space_norm)  # add vectors to the index
+            _, array_knn_indices_gpu = faiss_index.search(z_space_norm, K_NEIGHBORS)  # _ = distances
 
             end = time.time()
             nn_faiss_time_array[k, n] = end - start
@@ -865,11 +867,12 @@ def hand():
 
             # NearestNeighbors - object
             if k == 0:
-                gpu_resource = faiss.StandardGpuResources()  # use a single GPU
-                cpu_index = faiss.IndexFlatL2(z_space_norm.shape[1])  # create a CPU index
-                gpu_index = faiss.index_cpu_to_gpu(gpu_resource, 0, cpu_index)  # transfer the index to GPU
-            gpu_index.add(z_space_norm)  # add vectors to the index
-            _, array_knn_indices_gpu = gpu_index.search(z_space_norm, K_NEIGHBORS)  # _ = distances
+                faiss_index = faiss.IndexFlatL2(z_space_norm.shape[1])  # create a CPU index
+                if faiss.get_num_gpus() > 0:
+                    gpu_resource = faiss.StandardGpuResources()  # use a single GPU
+                    faiss_index = faiss.index_cpu_to_gpu(gpu_resource, 0, faiss_index)  # transfer the index to GPU
+            faiss_index.add(z_space_norm)  # add vectors to the index
+            _, array_knn_indices_gpu = faiss_index.search(z_space_norm, K_NEIGHBORS)  # _ = distances
 
             end = time.time()
             nn_faiss_time_array[k, n] = end - start
