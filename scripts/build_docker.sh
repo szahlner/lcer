@@ -14,7 +14,7 @@ if [[ ${USE_GPU} == "True" ]]; then
 else
     PARENT=${CPU_PARENT}
     PYTORCH_INSTALL="pip install --no-input torch==1.11.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu"
-    FAISS_INSTALL="conda install -c pytorch faiss-cpu"
+    FAISS_INSTALL="pip install faiss-cpu"
     TAG="${TAG}-cpu"
 fi
 
