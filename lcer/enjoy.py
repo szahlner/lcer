@@ -27,8 +27,8 @@ def enjoy() -> None:
     parser.add_argument("--add-episodes", help="Whether to add episodes to the GIF or not", action="store_true")
     parser.add_argument("--n-enjoy-episodes", help="How many episodes to enjoy", default=10, type=int)
     parser.add_argument("--take-every-n-frames", help="Take every nth frame in the GIF", default=1, type=int)
-    parser.add_argument("--gif-image-width", help="Width of the GIF in pixel", default=250, type=int)
-    parser.add_argument("--gif-image-height", help="Height of the GIF in pixel", default=250, type=int)
+    parser.add_argument("--gif-image-width", help="Width of the GIF in pixel", default=300, type=int)
+    parser.add_argument("--gif-image-height", help="Height of the GIF in pixel", default=300, type=int)
 
     arguments = parser.parse_args()
 
