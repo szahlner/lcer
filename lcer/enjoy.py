@@ -8,6 +8,7 @@ import imageio
 
 from types import SimpleNamespace
 from lcer import HER, SAC
+from PIL import Image
 
 
 def process_inputs(obs, goal, norm_stats):
@@ -87,7 +88,7 @@ def enjoy() -> None:
     if args.make_gif:
         images = []
         if args.add_episodes:
-            from PIL import Image, ImageDraw, ImageFont
+            from PIL import ImageDraw, ImageFont
 
             image_font = ImageFont.truetype("arial.ttf", 25)
 
